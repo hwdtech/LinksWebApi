@@ -8,7 +8,10 @@ using LinksWebApi.Middlewares;
 using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Filters;
 using System.Reflection;
+using FluentValidation;
 using LinksWebApi.Examples.Dto;
+using FluentValidation.AspNetCore;
+using LinksWebApi.BL.Dto.Validation;
 
 namespace LinksWebApi
 {
@@ -60,6 +63,10 @@ namespace LinksWebApi
             // Настройка подключения к базе данных
             builder.Services.AddDbContext<LinksDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            // Конфигурация валидации
+            builder.Services.AddFluentValidationAutoValidation();
+            builder.Services.AddValidatorsFromAssemblyContaining<SmartLinkBaseDtoValidator>();
 
             var app = builder.Build();
 
