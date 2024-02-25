@@ -1,5 +1,6 @@
 ﻿using LinksWebApi.BL.Dto;
 using LinksWebApi.BL.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LinksWebApi.Controllers
@@ -7,6 +8,7 @@ namespace LinksWebApi.Controllers
     /// <summary>
     /// Контроллер для работы со Smart Links.
     /// </summary>
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class SmartLinkController : ControllerBase

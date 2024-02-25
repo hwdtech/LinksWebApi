@@ -8,10 +8,15 @@ using LinksWebApi.Middlewares;
 using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Filters;
 using System.Reflection;
+using System.Text;
 using FluentValidation;
 using LinksWebApi.Examples.Dto;
 using FluentValidation.AspNetCore;
 using LinksWebApi.BL.Dto.Validation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using LinksWebApi.Swagger;
 
 namespace LinksWebApi
 {
@@ -45,7 +50,20 @@ namespace LinksWebApi
                     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                     c.IncludeXmlComments(xmlPath);
                     c.ExampleFilters();
+
+                    // Настройка Swagger для использования JWT
+                    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                    {
+                        Name = "Authorization",
+                        Type = SecuritySchemeType.ApiKey,
+                        Scheme = "Bearer",
+                        BearerFormat = "JWT",
+                        In = ParameterLocation.Header,
+                        Description = "Введите 'Bearer' [пробел] и затем ваш JWT токен.\nПример: \"Bearer 12345abcdef\"",
+                    });
+                    c.OperationFilter<AuthorizeAttributesToSwaggerFilter>();
                 });
+
                 builder.Services.AddSwaggerExamplesFromAssemblyOf<SmartLinkBaseDtoExample>();
             }
 
@@ -55,6 +73,7 @@ namespace LinksWebApi
             // Регистрация сервисов бизнес-логики
             builder.Services.AddTransient<ISmartLinkService, SmartLinkService>();
             builder.Services.AddTransient<IRedirectionRuleService, RedirectionRuleService>();
+            builder.Services.AddTransient<IJwtAuthenticationService, JwtAuthenticationService>();
 
             // Регистрация репозиториев
             builder.Services.AddTransient<ISmartLinkRepository, SmartLinkRepository>();
@@ -67,6 +86,28 @@ namespace LinksWebApi
             // Конфигурация валидации
             builder.Services.AddFluentValidationAutoValidation();
             builder.Services.AddValidatorsFromAssemblyContaining<SmartLinkBaseDtoValidator>();
+
+            // Конфигурация аутентификации
+            var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]
+                ?? throw new ApplicationException("Отсутствует конфигурация JWT")); // Используйте безопасный способ хранения ключей
+            builder.Services.AddAuthentication(x =>
+                {
+                    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(x =>
+                {
+                    x.RequireHttpsMetadata = true; // В продакшне должно быть true
+                    x.SaveToken = true;
+                    x.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(key),
+                        RequireExpirationTime = true,
+                        ValidateIssuer = false,
+                        ValidateAudience = false
+                    };
+                });
 
             var app = builder.Build();
 
@@ -95,6 +136,7 @@ namespace LinksWebApi
 
             // Настройка промежуточных слоев (middleware)
             app.UseHttpsRedirection();
+            app.UseAuthentication();
             app.UseAuthorization();
             app.UseMiddleware<ExceptionHandlingMiddleware>();
             app.UseMiddleware<RedirectorMiddleware>();
