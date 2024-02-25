@@ -74,6 +74,7 @@ namespace LinksWebApi.BL.Services
             var entity = await _repository.GetByIdAsync(id);
             if (entity == null) return null;
 
+            entity.Name = dto.Name;
             entity.OriginRelativeUrl = dto.OriginRelativeUrl;
             entity.NormalizedOriginRelativeUrl = NormalizeRelativeUrl(entity.OriginRelativeUrl);
 
