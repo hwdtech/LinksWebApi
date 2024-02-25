@@ -17,7 +17,7 @@ namespace LinksWebApi.Swagger
         public void Apply(OpenApiOperation operation, OperationFilterContext context)
         {
             // Получение политик авторизации, заданных для методов контроллера
-            var controllerAuthorizeAttributes = context.MethodInfo.DeclaringType
+            var controllerAuthorizeAttributes = context.MethodInfo.DeclaringType?
                 .GetCustomAttributes(true)
                 .OfType<AuthorizeAttribute>()
                 .ToList();
@@ -27,12 +27,12 @@ namespace LinksWebApi.Swagger
                 .OfType<AuthorizeAttribute>()
                 .ToList();
 
-            var requiredScopes = controllerAuthorizeAttributes.Union(actionAuthorizeAttributes)
+            var requiredScopes = controllerAuthorizeAttributes?.Union(actionAuthorizeAttributes)
                 .Select(attr => attr.Policy)
                 .Distinct().ToList();
 
             // Если политики не заданы, возврат без изменений
-            if (!requiredScopes.Any())
+            if (requiredScopes == null || requiredScopes.Count == 0)
             {
                 return;
             }
