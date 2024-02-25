@@ -10,13 +10,13 @@ using Swashbuckle.AspNetCore.Filters;
 using System.Reflection;
 using System.Text;
 using FluentValidation;
-using LinksWebApi.Examples.Dto;
 using FluentValidation.AspNetCore;
 using LinksWebApi.BL.Dto.Validation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using LinksWebApi.Swagger;
+using LinksWebApi.Swagger.Examples.Dto;
 
 namespace LinksWebApi
 {

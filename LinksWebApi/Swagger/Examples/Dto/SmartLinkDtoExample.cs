@@ -1,7 +1,7 @@
 ﻿using LinksWebApi.BL.Dto;
 using Swashbuckle.AspNetCore.Filters;
 
-namespace LinksWebApi.Examples.Dto
+namespace LinksWebApi.Swagger.Examples.Dto
 {
     /// <summary>
     /// Предоставляет примеры для объекта SmartLinkBaseDto, используемых в Swagger UI.
